@@ -35,6 +35,8 @@
 
     <!-- Sidebar -->
     @include('backend.includes.sidebar')
+
+    
     <!-- /Sidebar -->
 
     <div class="c-wrapper">

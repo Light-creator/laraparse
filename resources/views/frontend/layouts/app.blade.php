@@ -32,7 +32,7 @@
 <body>
 
     @include('frontend.includes.header')
-
+    
     <x-preloader />
 
     <main>
