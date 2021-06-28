@@ -9,6 +9,9 @@
     <meta name="keyword" content="{{ setting('meta_keyword') }}">
     <meta name="description" content="{{ setting('meta_description') }}">
 
+    <!-- Datepicker -->
+    <link rel="stylesheet" href="/css/foopicker.css">
+    <script src="/js/foopicker.js"></script>
  
     <!-- Shortcut Icon -->
     <link rel="shortcut icon" href="{{asset('img/favicon.png')}}">
@@ -26,7 +29,6 @@
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans+Bengali+UI&display=swap" rel="stylesheet" />
     <style>body{font-family:Ubuntu,"Noto Sans Bengali UI", Arial, Helvetica, sans-serif}</style>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
 
 
     @stack('after-styles')
@@ -80,11 +82,6 @@
         <script src="{{ mix('js/backend.js') }}"></script>
 
 
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
-
-<!-- (Optional) Latest compiled and minified JavaScript translation files -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/i18n/defaults-*.min.js"></script>
         
         @yield('custom_js')
 
