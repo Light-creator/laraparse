@@ -33,7 +33,7 @@ class GenerateMenus
 
             // Notifications
             $menu->add('<i class="c-sidebar-nav-icon fas fa-sitemap"></i>', [
-                'route' => 'backend.notifications.index',
+                'route' => 'backend.parse.index',
                 'class' => 'c-sidebar-nav-item',
             ])
             ->data([

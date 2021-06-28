@@ -21,7 +21,6 @@
     @stack('before-styles')
 
     <link rel="stylesheet" href="{{ mix('css/backend.css') }}">
-
     <link href="https://fonts.googleapis.com/css?family=Ubuntu&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans+Bengali+UI&display=swap" rel="stylesheet" />
     <style>body{font-family:Ubuntu,"Noto Sans Bengali UI", Arial, Helvetica, sans-serif}</style>
@@ -33,7 +32,7 @@
 </head>
 <body class="c-app">
 
-    <!-- Sidebar -->
+            <!-- Sidebar -->
     @include('backend.includes.sidebar')
 
     
@@ -66,14 +65,16 @@
             </main>
         </div>
 
-        <!-- Footer block -->
+        {{-- <!-- Footer block -->
         @include('backend.includes.footer')
-        <!-- / Footer block -->
+        <!-- / Footer block --> --}}
+  
 
         <!-- Scripts -->
         @stack('before-scripts')
 
         <script src="{{ mix('js/backend.js') }}"></script>
+        
 
         @stack('after-scripts')
         <!-- / Scripts -->

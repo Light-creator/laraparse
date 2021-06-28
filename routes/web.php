@@ -117,6 +117,16 @@ Route::group(['namespace' => 'Backend', 'prefix' => 'admin', 'as' => 'backend.',
 
     /*
     *
+    *  Parse Routes
+    *
+    * ---------------------------------------------------------------------
+    */
+    $module_name = 'parse';
+    $controller_name = 'ParseController';
+    Route::get("$module_name", ['as' => "$module_name.index", 'uses' => "$controller_name@index"]);
+    
+    /*
+    *
     *  Users Routes
     *
     * ---------------------------------------------------------------------
