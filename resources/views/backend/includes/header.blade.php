@@ -1,5 +1,5 @@
-<header class="c-header c-header-light c-header-fixed c-header-with-subheader">
-    <div class="container flex-header-container d-flex justify-content-center align-items-center">
+<header class="c-header c-header-light c-header-fixed c-header-with-subheader d-flex justify-content-center col-12">
+    <div class="container flex-header-container d-flex justify-content-center align-items-center col-10">
         <button class="c-header-toggler c-class-toggler d-lg-none mr-auto" type="button" data-target="#sidebar" data-class="c-sidebar-show"><span class="c-header-toggler-icon"></span></button><a class="c-header-brand d-sm-none" href="{{route("backend.dashboard")}}"><img class="c-header-brand" src="{{asset("img/backend-logo.jpg")}}" style="max-height:50px;min-height:40px;" alt="{{ app_name() }}"></a>
     
         <div class="first_header_block">

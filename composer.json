@@ -29,6 +29,7 @@
         "spatie/laravel-html": "^2.28",
         "spatie/laravel-medialibrary": "^8.10",
         "spatie/laravel-permission": "^3.17",
+        "symfony/dom-crawler": "^5.3",
         "yajra/laravel-datatables": "^1.5"
     },
     "require-dev": {

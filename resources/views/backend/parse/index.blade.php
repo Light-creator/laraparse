@@ -9,7 +9,7 @@
 @endsection
 
 @section('content')
-<div class="container d-flex">
+<div class="container d-flex col-lg-12">
     <div class="block-parse col-lg-9">
         <div class="block-parse-sort">
             <div class="section-sort">
@@ -51,19 +51,19 @@
                         <div class="d-flex align-items-center mx-1">
                             <p class="">Искать в:</p>
                             <label class="__container mx-1">Загаловке
-                                <input type="checkbox" checked="checked">
+                                <input type="checkbox">
                                 <span class="checkmark"></span>
                             </label>
                             <label class="__container mx-1">Тегах
-                                <input type="checkbox" checked="checked">
+                                <input type="checkbox">
                                 <span class="checkmark"></span>
                             </label>
                             <label class="__container mx-1">КС
-                                <input type="checkbox" checked="checked">
+                                <input type="checkbox">
                                 <span class="checkmark"></span>
                             </label>
                             <label class="__container mx-1">Тексте
-                                <input type="checkbox" checked="checked">
+                                <input type="checkbox">
                                 <span class="checkmark"></span>
                             </label>
                         </div>
@@ -86,14 +86,14 @@
         <div class="block-parse d-flex col-md-12">
             <div class="scrollbar col-md-3 style-3" >
                 <div class="force-overflow">
-                    <a class="btn btn-light col-md-12 link-choose main-choose" data-param="1">Источник 1</a>
-                    <div class="block_dropdown_choose_link" id="dropdown-1" style="display: none;">
-                        <a class="btn btn-light col-md-12 bg-white link-choose">Раздел</a>
-                        <a class="btn btn-light col-md-12 bg-white link-choose">Раздел</a>
-                        <a class="btn btn-light col-md-12 bg-white link-choose">Раздел</a>
-                        <a class="btn btn-light col-md-12 bg-white link-choose">Раздел</a>
-                        <a class="btn btn-light col-md-12 bg-white link-choose">Раздел</a>
+                    @foreach($source_info as $title => $sections)
+                    <a class="btn btn-light col-md-12 link-choose main-choose" data-param="{{ $title }}">{{ $title }}</a>
+                    <div class="block_dropdown_choose_link" id="dropdown-{{ $title }}" style="display: none;">
+                        @foreach ($sections as $section => $val)
+                        <a href="{{ route('backend.parse.section_parse', ['link' => current($val)]) }}" class="btn btn-light col-md-12 bg-white link-choose">{{ key($val) }}</a>
+                        @endforeach
                     </div>
+                    @endforeach
                 </div>
             </div>
             <div class="block-parse-article col-md-9">
@@ -139,6 +139,11 @@
             </div>
         </div>
         <div class="submit-parse-block col-md-12">
+            <div class="block-search">
+                <span><i class="fas fa-search"></i></span>
+                <input type="text">
+            </div>
+            <button type="submit" class="parse-submit-button">Запустить парсинг выбранных статей</button>
         </div>
     </div>
     <div class="block-lang col-lg-3">

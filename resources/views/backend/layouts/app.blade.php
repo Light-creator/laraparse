@@ -54,7 +54,7 @@
             <main class="c-main">
                 <div class="container-fluid">
 
-                    <div class="animated fadeIn">
+                    <div class="animated fadeIn d-flex justify-content-center">
 
                         @include('flash::message')
 
