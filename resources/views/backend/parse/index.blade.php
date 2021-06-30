@@ -32,13 +32,12 @@
                               <option value="2">BMW</option>
                             </select>
                         </div>
-
                         <div class="d-flex mx-1">
                             <p class="mt-2 mx-1">С</p>
                             <div class="block_icon">
                                 <i class="far fa-calendar-alt"></i>
                             </div>
-                            <input type="text" id="datepicker" name="date_from"/>
+                            <input type="text" class="date_from" id="datepicker" name="date_from"/>
                         </div>
                         <div class="d-flex mx-1">
                             <p class="mt-2 mx-1">По</p>
@@ -86,11 +85,11 @@
         <div class="block-parse d-flex col-md-12">
             <div class="scrollbar col-md-3 style-3" >
                 <div class="force-overflow">
-                    @foreach($source_info as $title => $sections)
+                    @foreach(Session::get('source_info') as $title => $sections)
                     <a class="btn btn-light col-md-12 link-choose main-choose" data-param="{{ $title }}">{{ $title }}</a>
                     <div class="block_dropdown_choose_link" id="dropdown-{{ $title }}" style="display: none;">
                         @foreach ($sections as $section => $val)
-                        <a href="{{ route('backend.parse.section_parse', ['link' => current($val)]) }}" class="btn btn-light col-md-12 bg-white link-choose">{{ key($val) }}</a>
+                        <a class="btn btn-light col-md-12 link-choose secondary-choose">{{ key($val) }}</a>
                         @endforeach
                     </div>
                     @endforeach
@@ -173,6 +172,17 @@ $('.main-choose').click(function() {
         $(this).addClass('choose-active');
     }
 });
+
+$('.secondary-choose').click(function() {
+    $('.secondary-choose').removeClass('choose-active');
+    $(this).addClass('choose-active');
+});
+
+$('#datepicker').on('change', function() {
+    console.log($(this).val())
+});
+
+
 
 </script>
 @endpush

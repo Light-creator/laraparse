@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Str;
 use Log;
-use Symfony\Component\DomCrawler\Crawler;
+
+use App\Services\ParseService;
 
 class ParseController extends Controller
 {
@@ -35,7 +36,7 @@ class ParseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $module_title = $this->module_title;
         $module_name = $this->module_name;
@@ -45,71 +46,36 @@ class ParseController extends Controller
         $module_name_singular = Str::singular($module_name);
 
         $module_action = 'List';
-
         $$module_name = $module_model::with('permissions')->paginate();
 
         Log::info(label_case($module_title.' '.$module_action).' | User:'.auth()->user()->name.'(ID:'.auth()->user()->id.')');
-
-        $source_info = collect($this->getSourceInfo());
         
+        $parser = new ParseService();
+        //dd($parser->parseArticles('2021-06-24', '2021-06-29'));
+        if(!$request->session()->has('source_info')) {
+            $request->session()->put('source_info', $parser->parseSourceInfo());
+            $request->session()->save();
+        }
+
         return view(
             "backend.$module_path.index",
-            compact('module_title', 'module_name', "$module_name", 'module_icon', 'module_action', 'source_info')
+            compact('module_title', 'module_name', "$module_name", 'module_icon', 'module_action')
         );
     }
 
     public function section_parse(Request $request) 
     {
-        dd($request);
+        $this->validate($request, [
+            'date_from' => 'required',
+            'date_to' => 'required'
+        ]);
 
         return back();
     }
 
-    private function getSourceInfo()
+    private function getSourceArticles() 
     {
-        $arr = [
-            'RT' => [
-                'link' => 'https://russian.rt.com',
-                'parser' => 'a.nav__link_header',
-            ],
-            'AIF' => [
-                'link' => 'https://spb.aif.ru',
-                'parser' => 'li.menuItem > a',
-            ],
-            'NY_Times' => [
-                'link' => 'https://www.nytimes.com',
-                'parser' => 'a.css-1wjnrbv',
-            ],
-            'Financial_Times' => [
-                'link' => 'https://www.ft.com',
-                'parser' => 'a.o-header__drawer-menu-link',
-            ],
-            'Yandex_Zen' => [
-                'link' => 'https://zen.yandex.ru',
-                'parser' => 'a.nav-menu-item',
-            ],
-        ];
 
-        $new_arr = [];
-
-        foreach($arr as $title_source => $val) {
-            $new_arr += [$title_source => $this->getData($val['parser'], $val['link'])];
-        }
-
-        return $new_arr;
-    }
-
-    private function getData($parser, $link) {
-        $html = file_get_contents($link);
-
-        $crawler = new Crawler(null, $link);
-        $crawler->addHtmlContent($html, 'UTF-8');
-
-        $vals = $crawler->filter($parser)->each(function (Crawler $node, $i) {
-            return [$node->text() => $node->link()->getUri()];
-        });
-
-        return $vals;
     }
 
 }

@@ -26305,15 +26305,7 @@ body {
   box-shadow: 0 10px 10px -6px rgba(23, 82, 255, 0.45);
   transform: translateY(-1px);
 }
-body {
-  display: grid;
-  place-items: center;
-  background-color: #eaedf2;
-  height: 100vh;
-  font-family: "Nunito", sans-serif;
-  font-size: 14px;
-  margin: 3vmin;
-}
+
 select, button {
   font-family: inherit;
   font-weight: 700;
@@ -26732,3 +26724,7 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
   outline: none;
 }
 
+
+
+
+/* Media */

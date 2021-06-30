@@ -33,6 +33,8 @@
 
     @stack('after-styles')
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <x-google-analytics />
     
 </head>
@@ -52,15 +54,15 @@
 
         <div class="c-body">
             <main class="c-main">
+
+                @include('flash::message')
+
+                <!-- Errors block -->
+                @include('backend.includes.errors')
+                <!-- / Errors block -->
                 <div class="container-fluid">
 
-                    <div class="animated fadeIn d-flex justify-content-center">
-
-                        @include('flash::message')
-
-                        <!-- Errors block -->
-                        @include('backend.includes.errors')
-                        <!-- / Errors block -->
+                    <div class="animated fadeIn d-flex justify-content-center align-items-center" style="height: 100%">
 
                         <!-- Main content block -->
                         @yield('content')
@@ -84,7 +86,6 @@
 
         
         @yield('custom_js')
-
         @stack('after-scripts')
         <!-- / Scripts -->
 
