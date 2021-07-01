@@ -44,32 +44,34 @@ class ParseService
         return collect($new_arr);
     }
 
-    public function parseArticles($date_from, $date_to, $name_source) {
+    public function parseArticles($date_from, $date_to, $name_source, $url) {
         $newvals = [];
 
         if($name_source == "RT") {
-            $link_main = 'https://russian.rt.com/listing/type.Article.category.world/prepare/sections/1/';
+
+            $section = explode('/', $url)[count(explode('/', $url))-1];
+
+            $link_main = 'https://russian.rt.com/listing/type.Article.category.'.$section.'/prepare/sections/1/';
+            //return $link_main;
             $i = 1;
             $data = @file_get_contents($link_main.''.$i);
             while($data) {
     
                 $link = $link_main.''.$i;
-    
+                
                 $html = file_get_contents($link);
-            
+                
                 $crawler = new Crawler(null, $link);
                 $crawler->addHtmlContent($html, 'UTF-8');
     
                 $date = explode(' ', $crawler->filter('time.date')->attr('datetime'))[0];
-    
+                
                 if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
-                    $title = $crawler->filter('div.card__heading > a')->text();
-                    $tag = $crawler->filter('div.card__trend > span > a')->text();
-                    $url = $crawler->filter('div.card__heading > a')->link()->getUri();
                     $newvals[] = [
-                        'title' => $title,
-                        'tag' => $tag,
-                        'url' => $url,
+                        'title' => $crawler->filter('div.card__heading > a')->text(),
+                        'keyWord' => $crawler->filter('div.card__trend > span > a')->text(),
+                        'url' => $crawler->filter('div.card__heading > a')->link()->getUri(),
+                        'text' => $crawler->filter('div.card__summary')->text()
                     ];
                 }
                 if(Carbon::parse($date)->getTimestamp() == Carbon::parse($date_from)->getTimestamp()) {
@@ -85,15 +87,15 @@ class ParseService
             $crawler->addHtmlContent($html, 'UTF-8');
             
             for ($i=0; $i < 5; $i++) { 
-                $li = $crawler->filter('li.css-ye6x8s')->each(function(Crawler $node, $i) {
+                $newvals = $crawler->filter('li.css-ye6x8s')->each(function(Crawler $node, $i) {
                     return [
                         'title' => $node->filter('h2.css-1j9dxys')->text(),
-                        'date' => $date,
-                        'text' => $node->filter('h2.css-1echdzn')->text(),
+                        'text' => $node->filter('p')->text(),
+                        'url' => $node->filter('div.css-1l4spti > a')->link()->getUri(),
+                        'keyWord' => '-'
                     ];
                 });
             }
-            dd($li);
         }
 
         return $newvals;

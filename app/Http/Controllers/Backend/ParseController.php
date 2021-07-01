@@ -51,7 +51,7 @@ class ParseController extends Controller
         Log::info(label_case($module_title.' '.$module_action).' | User:'.auth()->user()->name.'(ID:'.auth()->user()->id.')');
         
         $parser = new ParseService();
-        dd($parser->parseArticles('2021-06-24', '2021-06-29', 'NY_Times'));
+        //dd($parser->parseArticles('2021-06-24', '2021-06-29', 'RT', 'https://russian.rt.com/world'));
         if(!$request->session()->has('source_info')) {
             $request->session()->put('source_info', $parser->parseSourceInfo());
             $request->session()->save();
@@ -65,12 +65,10 @@ class ParseController extends Controller
 
     public function section_parse(Request $request) 
     {
-        $this->validate($request, [
-            'date_from' => 'required',
-            'date_to' => 'required'
-        ]);
-
-        return back();
+        $parser = new ParseService;
+        $articles = $parser->parseArticles($request->date_from, $request->date_to, $request->source_name, $request->url_section);
+        //return response()->json(['hh' => $articles]);
+        return response()->json(view('backend.ajax.table', compact('articles'))->render());
     }
 
     private function getSourceArticles() 

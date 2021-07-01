@@ -124,7 +124,7 @@ Route::group(['namespace' => 'Backend', 'prefix' => 'admin', 'as' => 'backend.',
     $module_name = 'parse';
     $controller_name = 'ParseController';
     Route::get("$module_name", ['as' => "$module_name.index", 'uses' => "$controller_name@index"]);
-    Route::get("$module_name/section_parse", ['as' => "$module_name.section_parse", 'uses' => "$controller_name@section_parse"]);
+    Route::post("$module_name/section_parse", ['as' => "$module_name.section_parse", 'uses' => "$controller_name@section_parse"]);
     
     /*
     *

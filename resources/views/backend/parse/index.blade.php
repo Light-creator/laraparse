@@ -89,7 +89,7 @@
                     <a class="btn btn-light col-md-12 link-choose main-choose" data-param="{{ $title }}">{{ $title }}</a>
                     <div class="block_dropdown_choose_link" id="dropdown-{{ $title }}" style="display: none;">
                         @foreach ($sections as $section => $val)
-                        <a class="btn btn-light col-md-12 link-choose secondary-choose">{{ key($val) }}</a>
+                        <a class="btn btn-light col-md-12 link-choose secondary-choose" data-param="{{ current($val) }}">{{ key($val) }}</a>
                         @endforeach
                     </div>
                     @endforeach
@@ -101,35 +101,7 @@
                         <div class="page">
                             <div class="page__demo">
                               <div class="main-container page__container">
-                                <table class="table">
-                                  <thead class="table__thead">
-                                    <tr class="table__head">
-                                      <th class="table__th">Заголовок</th>
-                                      <th class="table__th">Ключевые слова</th>
-                                      <th class="table__th">Текст</th>
-                                      <th class="table__th"></th>
-                                    </tr>
-                                  </thead>
-                                  <tbody class="table__tbody">
-                                    <tr class="table__tr">
-                                      <td class="table__td">
-                                        <div class="table__value">Wedding day coverage</div>
-                                      </td>
-                                      <td class="table__td">
-                                        <div class="table__value">6 hours</div>
-                                      </td>
-                                      <td class="table__td">
-                                        <div class="table__value">8 hours</div>
-                                      </td>
-                                      <td class="table__td">
-                                        <label class="__container mx-1" style="height: 100%; width: 100%;">
-                                            <input type="checkbox">
-                                            <span class="checkmark" style=""></span>
-                                        </label>
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
+                                
                               </div>
                             </div>
                           </div>
@@ -168,6 +140,8 @@ $('.main-choose').click(function() {
         $('#dropdown-'+$(this).data('param')).css('display', 'none');
         $(this).removeClass('choose-active');
     } else {
+        $('#dropdown-'+$('.main-choose.choose-active').data('param')).css('display', 'none');
+        $('.main-choose.choose-active').removeClass('choose-active')
         $('#dropdown-'+$(this).data('param')).css('display', 'block');
         $(this).addClass('choose-active');
     }
@@ -176,10 +150,69 @@ $('.main-choose').click(function() {
 $('.secondary-choose').click(function() {
     $('.secondary-choose').removeClass('choose-active');
     $(this).addClass('choose-active');
+    if($('#datepicker').val() != '' && $('#datepicker2').val() != '') {
+        $.ajax('{{ route('backend.parse.section_parse') }}', {
+            type: 'POST', 
+            data: { 
+                url_section: $('.secondary-choose.choose-active').data('param'),
+                date_from: $('#datepicker').val(),
+                date_to: $('#datepicker2').val(),
+                source_name: $('.main-choose.choose-active').text(),
+            },  
+            progress: function(data) {
+                console.log(data);
+            },
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                console.log(data);
+                $('.page__container').html(data);
+            }
+        });
+    }
 });
 
-$('#datepicker').on('change', function() {
-    console.log($(this).val())
+$('#foopicker-datepicker').click(function() {
+    if($('.secondary-choose').hasClass('choose-active') && $('#datepicker2').val() != '') {
+        $.ajax('{{ route('backend.parse.section_parse') }}', {
+            type: 'POST', 
+            data: { 
+                url_section: $('.secondary-choose.choose-active').data('param'),
+                date_from: $('#datepicker').val(),
+                date_to: $('#datepicker2').val(),
+                source_name: $('.main-choose.choose-active').text(),
+            },  
+            progress: function(data) {
+                console.log(data);
+            },
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                console.log(data);
+                $('.page__container').html(data);
+            }
+        });
+    }
+});
+
+$('#foopicker-datepicker2').click(function() {
+    if($('.secondary-choose').hasClass('choose-active') && $('#datepicker').val() != '') {
+        $.ajax('{{ route('backend.parse.section_parse') }}', {
+            type: 'POST', 
+            data: { 
+                url_section: $('.secondary-choose.choose-active').data('param'),
+                date_from: $('#datepicker').val(),
+                date_to: $('#datepicker2').val(),
+                source_name: $('.main-choose.choose-active').text(),
+            },  
+            progress: function(data) {
+                console.log(data);
+            },
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                console.log(data);
+                $('.page__container').html(data);
+            }
+        });
+    }
 });
 
 

@@ -8,6 +8,7 @@
     <link rel="apple-touch-icon" sizes="76x76" href="{{asset('img/favicon.png')}}">
     <meta name="keyword" content="{{ setting('meta_keyword') }}">
     <meta name="description" content="{{ setting('meta_description') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <!-- Datepicker -->
     <link rel="stylesheet" href="/css/foopicker.css">

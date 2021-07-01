@@ -26503,7 +26503,6 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
 {
 	overflow-y: scroll;
   height: 300px;
-  border: 1px solid #000;
 }
 
 
