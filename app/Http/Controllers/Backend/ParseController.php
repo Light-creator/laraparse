@@ -51,7 +51,7 @@ class ParseController extends Controller
         Log::info(label_case($module_title.' '.$module_action).' | User:'.auth()->user()->name.'(ID:'.auth()->user()->id.')');
         
         $parser = new ParseService();
-        //dd($parser->parseArticles('2021-06-24', '2021-06-29'));
+        dd($parser->parseArticles('2021-06-24', '2021-06-29', 'NY_Times'));
         if(!$request->session()->has('source_info')) {
             $request->session()->put('source_info', $parser->parseSourceInfo());
             $request->session()->save();

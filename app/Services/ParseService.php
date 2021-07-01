@@ -44,37 +44,56 @@ class ParseService
         return collect($new_arr);
     }
 
-    public function parseArticles($date_from, $date_to) {
+    public function parseArticles($date_from, $date_to, $name_source) {
         $newvals = [];
 
-        $link_main = 'https://russian.rt.com/listing/type.Article.category.world/prepare/sections/1/';
-        $i = 1;
-        $data = @file_get_contents($link_main.''.$i);
-        while($data) {
-
-            $link = $link_main.''.$i;
-
+        if($name_source == "RT") {
+            $link_main = 'https://russian.rt.com/listing/type.Article.category.world/prepare/sections/1/';
+            $i = 1;
+            $data = @file_get_contents($link_main.''.$i);
+            while($data) {
+    
+                $link = $link_main.''.$i;
+    
+                $html = file_get_contents($link);
+            
+                $crawler = new Crawler(null, $link);
+                $crawler->addHtmlContent($html, 'UTF-8');
+    
+                $date = explode(' ', $crawler->filter('time.date')->attr('datetime'))[0];
+    
+                if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
+                    $title = $crawler->filter('div.card__heading > a')->text();
+                    $tag = $crawler->filter('div.card__trend > span > a')->text();
+                    $url = $crawler->filter('div.card__heading > a')->link()->getUri();
+                    $newvals[] = [
+                        'title' => $title,
+                        'tag' => $tag,
+                        'url' => $url,
+                    ];
+                }
+                if(Carbon::parse($date)->getTimestamp() == Carbon::parse($date_from)->getTimestamp()) {
+                    break;
+                }
+                $i++;
+            }
+        } else if($name_source == "NY_Times") {
+            $link = 'https://www.nytimes.com/section/world';
             $html = file_get_contents($link);
-        
+            
             $crawler = new Crawler(null, $link);
             $crawler->addHtmlContent($html, 'UTF-8');
-
-            $date = explode(' ', $crawler->filter('time.date')->attr('datetime'))[0];
-
-            if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
-                $title = $crawler->filter('div.card__heading > a')->text();
-                $tag = $crawler->filter('div.card__trend > span > a')->text();
-                $url = $crawler->filter('div.card__heading > a')->link()->getUri();
-                $newvals[] = [
-                    'title' => $title,
-                    'tag' => $tag,
-                    'url' => $url,
-                ];
+            
+            for ($i=0; $i < 5; $i++) { 
+                $li = $crawler->filter('li.css-ye6x8s')->each(function(Crawler $node, $i) {
+                    return [
+                        'title' => $node->filter('h2.css-1j9dxys')->text(),
+                        'date' => $date,
+                        'text' => $node->filter('h2.css-1echdzn')->text(),
+                    ];
+                });
             }
-            if(Carbon::parse($date)->getTimestamp() == Carbon::parse($date_from)->getTimestamp()) {
-                break;
-            }
-            $i++;
+            dd($li);
         }
 
         return $newvals;
