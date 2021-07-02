@@ -82,6 +82,8 @@
                   </div>
             </div>
         </div>
+        <form action="" method="POST">
+        @csrf
         <div class="block-parse d-flex col-md-12">
             <div class="scrollbar col-md-3 style-3" >
                 <div class="force-overflow">
@@ -89,8 +91,10 @@
                     <a class="btn btn-light col-md-12 link-choose main-choose" data-param="{{ $title }}">{{ $title }}</a>
                     <div class="block_dropdown_choose_link" id="dropdown-{{ $title }}" style="display: none;">
                         @foreach ($sections as $section => $val)
-                        <a class="btn btn-light col-md-12 link-choose secondary-choose" data-param="{{ current($val) }}">{{ key($val) }}</a>
-                        @endforeach
+                        @if($val)
+                         <a class="btn btn-light col-md-12 link-choose secondary-choose" data-param="{{ current($val) }}">{{ key($val) }}</a>
+                        @endif
+                         @endforeach
                     </div>
                     @endforeach
                 </div>
@@ -116,6 +120,7 @@
             </div>
             <button type="submit" class="parse-submit-button">Запустить парсинг выбранных статей</button>
         </div>
+        </form>
     </div>
     <div class="block-lang col-lg-3">
 
@@ -134,6 +139,10 @@ var foopicker = new FooPicker({
 var foopicker = new FooPicker({
     id: 'datepicker2'
 });
+
+$('.checkbox_article').click(function() {
+    alert(1);
+}); 
 
 $('.main-choose').click(function() {
     if($(this).hasClass('choose-active')) {
@@ -214,7 +223,6 @@ $('#foopicker-datepicker2').click(function() {
         });
     }
 });
-
 
 
 </script>

@@ -51,7 +51,8 @@ class ParseController extends Controller
         Log::info(label_case($module_title.' '.$module_action).' | User:'.auth()->user()->name.'(ID:'.auth()->user()->id.')');
         
         $parser = new ParseService();
-        dd($parser->parseArticles('2021-06-20', '2021-07-1', 'AIF', 'https://spb.aif.ru/society/science'));
+        //dd($request->session());
+        dd($parser->parseArticles('2021-06-28', '2021-07-2', 'Yandex_zen', 'https://zen.yandex.ru/t/путешествия'));
         if(!$request->session()->has('source_info')) {
             $request->session()->put('source_info', $parser->parseSourceInfo());
             $request->session()->save();
@@ -71,7 +72,7 @@ class ParseController extends Controller
         return response()->json(view('backend.ajax.table', compact('articles'))->render());
     }
 
-    private function getSourceArticles() 
+    private function add_article_session() 
     {
 
     }

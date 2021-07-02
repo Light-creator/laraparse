@@ -21,7 +21,7 @@
         </td>
         <td class="table__td">
           <label class="__container mx-1" style="height: 100%; width: 100%;">
-              <input type="checkbox">
+              <input type="checkbox" class="checkbox_article" name="articles[]" value="{{ json_encode([$article['source_name'] => $article['url']]) }}">
               <span class="checkmark" style=""></span>
           </label>
         </td>

@@ -38,7 +38,7 @@ class ParseService
         $new_arr = [];
 
         foreach($this->arr as $title_source => $val) {
-            $new_arr += [$title_source => $this->parseData($val['parser_for_menu'], $val['link'])];
+            $new_arr += [$title_source => $this->parseData($val['parser_for_menu'], $val['link'], $title_source)];
         }
 
         return collect($new_arr);
@@ -70,17 +70,18 @@ class ParseService
                     $date = explode(' ', $crawler->filter('time.date')->attr('datetime'))[0];
                 }
 
+                if(Carbon::parse($date)->getTimestamp() < Carbon::parse($date_from)->getTimestamp()) {
+                    return collect($newvals);
+                }
                 if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
                     $newvals[] = [
                         'title' => $crawler->filter('div.card__heading > a')->text(),
                         'keyWord' => $section != 'news' ? $crawler->filter('div.card__trend > span > a')->text() : '-',
                         'url' => $crawler->filter('div.card__heading > a')->link()->getUri(),
-                        'text' => $crawler->filter('div.card__summary')->text()
+                        'text' => $crawler->filter('div.card__summary')->text(),
+                        'source_name' => $name_source,
                     ];
                     //dd($newvals);
-                }
-                if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_from)->getTimestamp()) {
-                    break;
                 }
                 $i++;
             }
@@ -91,59 +92,125 @@ class ParseService
             $crawler = new Crawler(null, $link);
             $crawler->addHtmlContent($html, 'UTF-8');
             
-            //for ($i=0; $i < 40; $i++) { 
-                $newvals = $crawler->filter('li.css-ye6x8s')->each(function(Crawler $node, $i) {
-                    return [
-                        'title' => $node->filter('h2.css-1j9dxys')->text(),
-                        'text' => $node->filter('p')->text(),
-                        'url' => $node->filter('div.css-1l4spti > a')->link()->getUri(),
-                        'keyWord' => '-'
-                    ];
-                });
-            //}
-        } else if($name_source == "AIF") {
+            foreach($crawler->filter('li.css-ye6x8s') as $DOM) {
+                $node = new Crawler($DOM, $link);
+
+                $newvals[] = [
+                    'title' => $node->filter('h2.css-1j9dxys')->text(),
+                    'text' => $node->filter('p')->text(),
+                    'url' => $node->filter('div.css-1l4spti > a')->link()->getUri(),
+                    'keyWord' => '-',
+                    'source_name' => $name_source,
+                ];
+            }
+        } else if($name_source == "AIF") { 
             $i = 1;
             while(1) {
                 $link = $url.'?page='.$i;
 
                 $html = file_get_contents($link);
-            
+                
                 $crawler = new Crawler(null, $link);
                 $crawler->addHtmlContent($html, 'UTF-8');
 
+                foreach($crawler->filter('div.list_item') as $DOM) {
+                    $node = new Crawler($DOM);
+                    
+                    $date = explode(' ', $node->filter('span.text_box__date')->text())[0];
 
-                $newvals = $crawler->filter('div.list_item')->each($crawler, function(Crawler $node, $i) {
-                    $date = explode(' ', $crawler->filter('span.text_box__date')->text())[0];
+                    if(Carbon::parse($date)->getTimestamp() < Carbon::parse($date_from)->getTimestamp()) {
+                        return collect($newvals);
+                    }
                     if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
-                        return [
+                        $newvals[] = [
                             'title' => $node->filter('div.box_info > a > h3')->text(),
                             'text' => $node->filter('div.text_box > span')->text(),
-                            'keyWord' => '-',
+                            'keyWord' => mb_strtolower($node->filter('a.rubric_link')->text()),
                             'url' => $node->filter('div.box_info > a')->link()->getUri(),
+                            'source_name' => $name_source,
                         ];
                     }
-                });
-                if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_from)->getTimestamp()) {
-                    break;
+                    
                 }
-
+                
                 $i++;
             }
+        } else if($name_source == "Financial_Times") {
+            $i = 1;
+            while(1) {
+                $link = $url.'?page='.$i;
+
+                $html = file_get_contents($link);
+                
+                $crawler = new Crawler(null, $link);
+                $crawler->addHtmlContent($html, 'UTF-8');
+                
+                $z = 17;
+                foreach($crawler->filter('li.o-teaser-collection__item.o-grid-row') as $DOM) {
+                    $node = new Crawler($DOM, $link);
+                    $date = explode('T', $crawler->filter('time')->attr('datetime'))[0];
+                    //$date = explode('T', $crawler->filterXPath('//*[@id="stream"]/div[1]/ul/li['.$z.']/div[1]/div/time')->attr('datetime'))[0];
+
+                    if(Carbon::parse($date)->getTimestamp() < Carbon::parse($date_from)->getTimestamp()) {
+                        return collect($newvals);
+                    }
+                    if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
+                        if($node->filter('a.js-teaser-heading-link')->count()) {
+                            $newvals[] = [
+                                'title' => $node->filter('a.js-teaser-heading-link')->text(),
+                                'text' => $node->filter('a.js-teaser-standfirst-link')->count() ? $node->filter('a.js-teaser-standfirst-link')->text() : '-',
+                                'keyWord' => $node->filter('a.o-teaser__tag')->text(),
+                                'url' => $node->filter('a.js-teaser-heading-link')->link()->getUri(),
+                                'source_name' => $name_source,
+                            ];
+                        }
+                    }
+                    $z++;
+                }
+                
+                $i++;
+            }
+        } else if('Yandex_zen') {
+            $c = curl_init($url);
+            curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+
+            $html = curl_exec($c);
+            $crawler = new Crawler(null, $url);
+            $crawler->addHtmlContent($html, 'UTF-8');
+
+            dd($crawler->filter('div.feed__row'));
+            
         }
 
         return collect($newvals);
     }
 
-    private function parseData($parser, $link) {
+    private function parseData($parser, $link, $title_source) {
         $html = file_get_contents($link);
 
         $crawler = new Crawler(null, $link);
         $crawler->addHtmlContent($html, 'UTF-8');
+
+        $vals = [];
         
-        $vals = $crawler->filter($parser)->each(function (Crawler $node, $i) {
-            if($node->text() != '.link:hover .Covid19-icon { background-color: transparent; } Евро-2020')
-            return [$node->text() => $node->link()->getUri()];
-        });
+        if($title_source == "AIF") {
+            foreach($crawler->filter('li.top_level_item_js')->first() as $DOM) {
+                $node = new Crawler($DOM);
+                $count = $node->filter('a')->count()-1;
+            }
+        } else {
+            $count = 0;
+        }
+        $i = 0;
+        foreach($crawler->filter($parser) as $DOM) {
+            $node = new Crawler($DOM, $link);
+            if($node->text() != '.link:hover .Covid19-icon { background-color: transparent; } Евро-2020' && $i >= $count) {
+                $vals[] = [
+                    $node->text() => $node->link()->getUri(),
+                ];
+            }
+            $i++;
+        }
 
         return $vals;
     }
