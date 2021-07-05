@@ -55,12 +55,15 @@ class ParseController extends Controller
         $parser = new ParseService;
         //$request->session()->forget('articles');
         //dd($request->session()->get('articles'));
-        //dd($parser->parseArticles('2021-06-28', '2021-07-2', 'Yandex_zen', 'https://zen.yandex.ru/t/путешествия'));
+        dd($parser->parseArticles('2021-07-3', '2021-07-5', 'Reuters', 'https://www.reuters.com/world/'));
+        //dd($articles);
         //dd($parser->parseTags('https://russian.rt.com/world', "RT"));
         if(!$request->session()->has('source_info')) {
             $request->session()->put('source_info', $parser->parseSourceInfo());
             $request->session()->save();
         }
+        // https://www.washingtonpost.com/pb/api/v2/render/feature/section/story-list?content_origin=prism-query&url=prism://prism.query/site-articles-only,/politics&offset=20&limit=15
+        //dd($request->session());
 
         return view(
             "backend.$module_path.index",
@@ -72,8 +75,9 @@ class ParseController extends Controller
     {
         $parser = new ParseService;
         $articles = $parser->parseArticles($request->date_from, $request->date_to, $request->source_name, $request->url_section);
-        
-        return response()->json(view('backend.ajax.table', compact('articles'))->render());
+        $tags = $parser->parseTags($articles);
+        //dd($tags);
+        return response()->json(['articles' => view('backend.ajax.table', compact('articles'))->render(), 'tags' => view('backend.ajax.tags', compact('tags'))->render()]);
     }
 
     public function parse_tags(Request $request) 
@@ -132,14 +136,13 @@ class ParseController extends Controller
     }
 
     public function parse_article_ajax(Request $request) {
-        
+
         $parser = new ParseService;
 
-        $article_arr = $parser->parseArticle(json_decode($request->session()->get('articles')[$request->article]));
+        $article_arr = json_decode($request->session()->get('articles')[$request->article]);
+        $img_name = array_slice(explode('/', $article_arr->img->url[0]), -1)[0];
         
-        $img_name = array_slice(explode('/', $article_arr['img']['url'][0]), -1)[0];
-        
-        $ch = curl_init($article_arr['img']['url'][0]);
+        $ch = curl_init($article_arr->img->url[0]);
         $fp = fopen('img/parse/'.$img_name, 'wb');
         curl_setopt($ch, CURLOPT_FILE, $fp);
         curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -148,21 +151,21 @@ class ParseController extends Controller
         fclose($fp);
 
         $img = Img::create([
-            'alt' => $article_arr['img']['alt'],
+            'alt' => $article_arr->img->alt,
             'original' => $img_name,
         ]);
 
         $article = ParseArticle::create([
-            'title' => $article_arr['title'],
-            'url' => $article_arr['url'],
+            'title' => $article_arr->title,
+            'url' => $article_arr->url,
             'project' => 'test_project',
             'categorie' => 'test_categorie',
             'tags' => 'test',
             'img' => $img->id,
             'author' => 'test_author',
-            'desc' => $article_arr['text'],
-            'meta-tag-img' => json_encode($article_arr['img']),
-            'meta-tags' => json_encode($article_arr['meta_tags_article'])
+            'desc' => $article_arr->text,
+            'meta-tag-img' => json_encode($article_arr->img),
+            'meta-tags' => json_encode($article_arr->meta_tags_article)
         ]);
 
         if($article) {
@@ -183,5 +186,71 @@ class ParseController extends Controller
 
     }
 
-
 }
+
+
+
+
+
+// public function parseArticle($arr_article) {
+        
+    //     $html = file_get_contents($arr_article->link);
+
+    //     $crawler = new Crawler(null, $arr_article->link);
+    //     $crawler->addHtmlContent($html, 'UTF-8');
+
+    //     $text = '';
+
+    //     if($arr_article->source_name == "RT") {
+    //         if($crawler->filter('div.article__text_article-page')->text() == "") {
+    //             $text = $crawler->filter('div.article__summary.article__summary_article-page.js-mediator-article')->html();
+    //         } else {
+    //             foreach ($crawler->filter('div.article__text_article-page')->children() as $DOM) {
+    //                 $node = new Crawler($DOM, $arr_article->link);
+    //                 if($node->filter('div.read-more__title')->count() == 0 && $node->filter('img.article__cover-image ')->count() == 0) {
+    //                     $text .= $DOM->ownerDocument->saveHTML($DOM);
+    //                 }
+    //             }
+    //         }
+
+    //         $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+    //         $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
+    //         $keyWords = $crawler->filterXpath("//meta[@property='mediator_theme']")->extract(array('content'));
+    //         $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+
+    //     } else if($arr_article->source_name == "AIF") {
+    //         if($crawler->filter('div.article_text')->count() == 0) {
+    //             $text = $crawler->filter('div.lead')->html();
+    //         } else {
+    //             foreach ($crawler->filter('div.article_text')->children() as $DOM) {
+    //                 $node = new Crawler($DOM, $arr_article->link);
+    //                 if($node->filter('div.inj_link_box')->count() == 0 && $node->filter('img')->count() == 0) {
+    //                     $text .= $DOM->ownerDocument->saveHTML($DOM);
+    //                 }
+    //             }
+    //         }
+
+    //         $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+    //         $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
+    //         $keyWords = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
+    //         $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+
+    //     }   
+
+    //     $keyWords = $this->parseArticleTags($arr_article->link, $arr_article->source_name);
+
+    //     return [
+    //         'title' => $arr_article->title,
+    //         'url' => $arr_article->link,
+    //         'text' => $text,
+    //         'meta_tags_article' => [
+    //             'desc' => $desc, 
+    //             'title' => $title, 
+    //             'keyWords' => $keyWords, 
+    //         ],
+    //         'img' => [
+    //             'url' => $img_url,
+    //             'alt' => $arr_article->title,
+    //         ],
+    //     ];
+    // }

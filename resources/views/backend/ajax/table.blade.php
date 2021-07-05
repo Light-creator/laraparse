@@ -11,17 +11,17 @@
         @foreach($articles as $article)
       <tr class="table__tr">
         <td class="table__td">
-          <div class="table__value">{{ $article['title'] }}</div>
+          <div class="table__value table_title">{{ $article['title'] }}</div>
         </td>
         <td class="table__td">
-          <div class="table__value">{{ $article['keyWord'] }}</div>
+          <div class="table__value table_keyWords">{{ implode(',', $article['meta_tags_article']['keyWords']) }}</div>
         </td>
         <td class="table__td">
-          <div class="table__value">{{ $article['text'] }}</div>
+          <div class="table__value table_text">{{ $article['meta_tags_article']['desc'][0] }}</div>
         </td>
         <td class="table__td">
           <label class="__container mx-1" style="height: 100%; width: 100%;">
-              <input type="checkbox" class="checkbox_article" name="articles[]" value="{{ json_encode(['link' => $article['url'], 'title' => $article['title'], 'keyWord' => $article['keyWord'], 'source_name' => $article['source_name'], 'status' => 1]) }}">
+              <input type="checkbox" class="checkbox_article" name="articles[]" value="{{ json_encode($article) }}">
               <span class="checkmark" style=""></span>
           </label>
         </td>

@@ -32,9 +32,9 @@
                 <div class="row">
                     <div class="col-md-12 select-outline d-flex" style="flex-wrap: wrap;">
                         <div class="form-group d-flex align-items-center mx-1">
-                            <input type="text" class="form-control" placeholder="Поиск по тегам">
+                            <input type="text" class="form-control search_tags" placeholder="Поиск по тегам">
                         </div>
-                        <div class="custom-select mx-1" style="width:200px;">
+                        {{-- <div class="custom-select mx-1" style="width:200px;">
                             <select>
                               <option value="0">Select car:</option>
                               <option value="1">Audi</option>
@@ -47,7 +47,7 @@
                               <option value="1">Audi</option>
                               <option value="2">BMW</option>
                             </select>
-                        </div>
+                        </div> --}}
                         <div class="d-flex mx-1">
                             <p class="mt-2 mx-1">С</p>
                             <div class="block_icon">
@@ -64,21 +64,17 @@
                         </div>
 
                         <div class="d-flex align-items-center mx-1">
-                            <p class="">Искать в:</p>
+                            <p>Искать в:</p>
                             <label class="__container mx-1">Загаловке
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                            </label>
-                            <label class="__container mx-1">Тегах
-                                <input type="checkbox">
+                                <input type="checkbox" class="title_checkbox_tag">
                                 <span class="checkmark"></span>
                             </label>
                             <label class="__container mx-1">КС
-                                <input type="checkbox">
+                                <input type="checkbox" class="cs_checkbox_tag">
                                 <span class="checkmark"></span>
                             </label>
                             <label class="__container mx-1">Тексте
-                                <input type="checkbox">
+                                <input type="checkbox" class="text_checkbox_tag">
                                 <span class="checkmark"></span>
                             </label>
                         </div>
@@ -88,7 +84,6 @@
             </div>
             <div class="section-tags">
                 <div class="container tag_box">
-   
                 </div>
             </div>
         </div>
@@ -177,20 +172,20 @@ $(document).on('change', '.checkbox_article', function() {
 });
 
 
-$('.secondary-choose').click(function() {
-    $.ajax('{{ route('backend.parse.parse_tags') }}', {
-            type: 'POST', 
-            data: { 
-                url_section: $(this).data('param'),
-                source_name: $('.main-choose.choose-active').text(),
-            },  
-            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-            success: function (data) {
-                console.log(data);
-                $('.tag_box').html(data);
-            }
-        });
-});
+// $('.secondary-choose').click(function() {
+//     $.ajax('{{ route('backend.parse.parse_tags') }}', {
+//             type: 'POST', 
+//             data: { 
+//                 url_section: $(this).data('param'),
+//                 source_name: $('.main-choose.choose-active').text(),
+//             },  
+//             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+//             success: function (data) {
+//                 console.log(data);
+//                 $('.tag_box').html(data);
+//             }
+//         });
+// });
 
 $('.main-choose').click(function() {
     if($(this).hasClass('choose-active')) {
@@ -216,13 +211,11 @@ $('.secondary-choose').click(function() {
                 date_to: $('#datepicker2').val(),
                 source_name: $('.main-choose.choose-active').text(),
             },  
-            progress: function(data) {
-                console.log(data);
-            },
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             success: function (data) {
                 console.log(data);
-                $('.page__container').html(data);
+                $('.page__container').html(data['articles']);
+                $('.tag_box').html(data['tags']);
             }
         });
     }
@@ -238,13 +231,11 @@ $('#foopicker-datepicker').click(function() {
                 date_to: $('#datepicker2').val(),
                 source_name: $('.main-choose.choose-active').text(),
             },  
-            progress: function(data) {
-                console.log(data);
-            },
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             success: function (data) {
                 console.log(data);
-                $('.page__container').html(data);
+                $('.page__container').html(data['articles']);
+                $('.tag_box').html(data['tags']);
             }
         });
     }
@@ -260,15 +251,65 @@ $('#foopicker-datepicker2').click(function() {
                 date_to: $('#datepicker2').val(),
                 source_name: $('.main-choose.choose-active').text(),
             },  
-            progress: function(data) {
-                console.log(data);
-            },
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             success: function (data) {
                 console.log(data);
-                $('.page__container').html(data);
+                $('.page__container').html(data['articles']);
+                $('.tag_box').html(data['tags']);
             }
         });
+    }
+});
+
+$('.search_tags').on('keyup', function() {
+    let  value = $(this).val().toLowerCase();
+    $('.checkbox_tags').each(function() {
+        if($(this).val().toLowerCase().indexOf(value) >= 0) {
+            $(this).parent().css('display', 'inline-block') 
+        } else {
+            $(this).parent().css('display', 'none')
+        }
+    });
+});
+
+$(document).on('click', '.checkbox_tags', function() {
+    let value = $(this).val().toLowerCase();
+    let iter = 0;
+    $('.checkbox_tags').each(function() {
+        if($(this).is(':checked')) {
+            iter++;
+            if($('.title_checkbox_tag').is(':checked')) {
+                $('.table__tr').each(function() {
+                    if($(this).find('div.table_title').text().toLowerCase().indexOf(value) >= 0) {
+                        $(this).css('display', 'block');
+                    } else {
+                        $(this).css('display', 'none');
+                    }
+                });
+            } 
+            if($('.cs_checkbox_tag').is(':checked')) {
+                $('.table__tr').each(function() {
+                    if($(this).find('div.table_keyWords').text().toLowerCase().indexOf(value) >= 0) {
+                        $(this).css('display', 'block');
+                    } else {
+                        $(this).css('display', 'none');
+                    }
+                });
+            }
+            if($('.text_checkbox_tag').is(':checked')) {
+                $('.table__tr').each(function() {
+                    if($(this).find('div.table_text').text().toLowerCase().indexOf(value) >= 0) {
+                        $(this).css('display', 'block');
+                    } else {
+                        $(this).css('display', 'none');
+                    }
+                });
+            }
+        }
+    });
+
+    if(iter == 0) {
+        $('.table__tr').css('display', '');
     }
 });
 

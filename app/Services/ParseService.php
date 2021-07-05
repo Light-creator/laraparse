@@ -11,25 +11,27 @@ class ParseService
             'RT' => [
                 'link' => 'https://russian.rt.com',
                 'parser_for_menu' => 'a.nav__link_header',
-                'parser_articles' => [
-                    ''
-                ],
+                'parser_for_tags' => 'a.tags-trends__link.link.link_underline_color',
             ],
             'AIF' => [
                 'link' => 'https://spb.aif.ru',
                 'parser_for_menu' => 'li.menuItem > a',
+                'parser_for_tags' => '',
             ],
-            'NY_Times' => [
-                'link' => 'https://www.nytimes.com',
-                'parser_for_menu' => 'a.css-1wjnrbv',
+            'Reuters' => [
+                'link' => 'https://www.reuters.com',
+                'parser_for_menu' => 'li.LinkGroup__item___2lsBAV > a.Text__text___3eVx1j.Text__dark-grey___AS2I_p.Text__medium___1ocDap.Text__default___1Xh7Yh.Link__underline_on_hover___3-iv5a.LinkGroup__link___Q30Q4E',
+                'parser_for_tags' => '',
             ],
             'Financial_Times' => [
                 'link' => 'https://www.ft.com',
                 'parser_for_menu' => 'a.o-header__drawer-menu-link',
+                'parser_for_tags' => '',
             ],
             'Yandex_Zen' => [
                 'link' => 'https://zen.yandex.ru',
                 'parser_for_menu' => 'a.nav-menu-item',
+                'parser_for_tags' => '',
             ],
         ];
     }
@@ -74,36 +76,29 @@ class ParseService
                     return collect($newvals);
                 }
                 if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
-                    $newvals[] = [
-                        'title' => $crawler->filter('div.card__heading > a')->text(),
-                        'keyWord' => $section != 'news' ? $crawler->filter('div.card__trend > span > a')->text() : '-',
-                        'url' => $crawler->filter('div.card__heading > a')->link()->getUri(),
-                        'text' => $crawler->filter('div.card__summary')->text(),
-                        'source_name' => $name_source,
-                    ];
-                    //dd($newvals);
+                    $newvals[] = $this->parseArticle($crawler->filter('div.card__heading > a')->link()->getUri(), $name_source);
                 }
                 $i++;
             }
-        } else if($name_source == "NY_Times") {
-            $link = $url;
-            $html = file_get_contents($link);
+        // } else if($name_source == "NY_Times") {
+        //     $link = $url;
+        //     $html = file_get_contents($link);
             
-            $crawler = new Crawler(null, $link);
-            $crawler->addHtmlContent($html, 'UTF-8');
+        //     $crawler = new Crawler(null, $link);
+        //     $crawler->addHtmlContent($html, 'UTF-8');
             
-            foreach($crawler->filter('li.css-ye6x8s') as $DOM) {
-                $node = new Crawler($DOM, $link);
+        //     foreach($crawler->filter('li.css-ye6x8s') as $DOM) {
+        //         $node = new Crawler($DOM, $link);
 
-                $newvals[] = [
-                    'title' => $node->filter('h2.css-1j9dxys')->text(),
-                    'text' => $node->filter('p')->text(),
-                    'url' => $node->filter('div.css-1l4spti > a')->link()->getUri(),
-                    'keyWord' => '-',
-                    'source_name' => $name_source,
-                ];
-            }
-        } else if($name_source == "AIF") { 
+        //         $newvals[] = [
+        //             'title' => $node->filter('h2.css-1j9dxys')->text(),
+        //             'text' => $node->filter('p')->text(),
+        //             'url' => $node->filter('div.css-1l4spti > a')->link()->getUri(),
+        //             'keyWord' => '-',
+        //             'source_name' => $name_source,
+        //         ];
+        //     }
+         } else if($name_source == "AIF") { 
             $i = 1;
             while(1) {
                 $link = $url.'?page='.$i;
@@ -170,16 +165,31 @@ class ParseService
                 
                 $i++;
             }
-        } else if('Yandex_zen') {
-            $c = curl_init($url);
-            curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+        } else if($name_source == "Reuters") {
+            $section = explode('/', $url)[3];
 
-            $html = curl_exec($c);
-            $crawler = new Crawler(null, $url);
-            $crawler->addHtmlContent($html, 'UTF-8');
-
-            dd($html);
+            $z = 0;
+            while(1) {
+                $link = 'https://www.reuters.com/pf/api/v3/content/fetch/articles-by-section-alias-or-id-v1?query={"id":"/'.$section.'","offset":'.$z.',"orderby":"last_updated_date:desc","size":1,"website":"reuters"}&d=42&_website=reuters';
             
+                $response = file_get_contents($link);
+                $data = json_decode($response);
+                
+                $date = explode('T', $data->result->articles[0]->published_time)[0];
+                $url = 'https://www.reuters.com'. $data->result->articles[0]->canonical_url;
+                
+                if(Carbon::parse($date)->getTimestamp() < Carbon::parse($date_from)->getTimestamp()) {
+                    
+                    return collect($newvals);
+                }
+                if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
+                    
+                    $newvals[] = $this->parseArticle($url, $name_source);
+                    dd($newvals);
+                }
+                
+                $z++;
+            }
         }
 
         return collect($newvals);
@@ -205,9 +215,15 @@ class ParseService
         foreach($crawler->filter($parser) as $DOM) {
             $node = new Crawler($DOM, $link);
             if($node->text() != '.link:hover .Covid19-icon { background-color: transparent; } Евро-2020' && $i >= $count) {
-                $vals[] = [
-                    $node->text() => $node->link()->getUri(),
-                ];
+                if($title_source == 'Reuters' && $i < 8) {
+                    $vals[] = [
+                        $node->text() => $node->link()->getUri(),
+                    ];
+                } else if($title_source != 'Reuters') {
+                    $vals[] = [
+                        $node->text() => $node->link()->getUri(),
+                    ];
+                }
             }
             $i++;
         }
@@ -215,44 +231,53 @@ class ParseService
         return $vals;
     }
 
-    public function parseTags($link, $title_source) {
+    public function parseTags($articles) {
+        $tags = [];
+
+        foreach($articles as $article) {
+            $arr_tags = $this->parseArticleTags($article['url'], $article['source_name']);
+
+            $tags = array_merge($tags, $arr_tags);
+        }
+
+        return array_values(array_unique($tags));
+    }
+
+    protected function parseArticleTags($link, $title_source) {
         $html = file_get_contents($link);
 
         $crawler = new Crawler(null, $link);
         $crawler->addHtmlContent($html, 'UTF-8');
 
-        if($title_source == "RT") {
-            $arrTags = $crawler->filter('li.nav__row-item_popular-trends')->each(function (Crawler $node, $i) {
-                return $node->filter('a')->text();
-            });
-        } else if($title_source == "AIF") {
-
-        }
-        return $arrTags;
-    }
-
-    protected function parseArticleTags($link, $title_source) {
-
-    }
-
-    public function parseArticle($arr_article) {
+        $arr_tags = $crawler->filter($this->arr[$title_source]['parser_for_tags'])->each(function (Crawler $node, $i) {
+            return $node->text();
+        });
         
-        $html = file_get_contents($arr_article->link);
+        return $arr_tags;
+    }
 
-        $crawler = new Crawler(null, $arr_article->link);
+    public function parseArticle($link, $source_name) {
+        
+        $html = file_get_contents($link);
+        
+        $crawler = new Crawler(null, $link);
         $crawler->addHtmlContent($html, 'UTF-8');
 
         $text = '';
 
-        if($arr_article->source_name == "RT") {
-            if($crawler->filter('div.article__text_article-page')->text() == "") {
+        if($source_name == "RT") {
+            if($crawler->filter('div.article__text_article-page')->count() == 0) {
                 $text = $crawler->filter('div.article__summary.article__summary_article-page.js-mediator-article')->html();
             } else {
-                foreach ($crawler->filter('div.article__text_article-page')->children() as $DOM) {
-                    $node = new Crawler($DOM, $arr_article->link);
-                    if($node->filter('div.read-more__title')->count() == 0 && $node->filter('img.article__cover-image ')->count() == 0) {
-                        $text .= $DOM->ownerDocument->saveHTML($DOM);
+                if($crawler->filter('div.article__text_article-page')->text() != "") {
+                    foreach ($crawler->filter('div.article__text_article-page')->children() as $DOM) {
+                        $node = new Crawler($DOM, $link);
+                        if($node->filter('div.read-more__title')->count() == 0 && $node->filter('img.article__cover-image ')->count() == 0) {
+                            $text .= $DOM->ownerDocument->saveHTML($DOM);
+                        }
                     }
+                } else {
+                    $text = $crawler->filter('div.article__summary.article__summary_article-page.js-mediator-article')->html();
                 }
             }
 
@@ -260,13 +285,15 @@ class ParseService
             $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $keyWords = $crawler->filterXpath("//meta[@property='mediator_theme']")->extract(array('content'));
             $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+            $title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
+            $keyWords = $this->parseArticleTags($link, $source_name);
 
-        } else if($arr_article->source_name == "AIF") {
+        } else if($source_name == "AIF") {
             if($crawler->filter('div.article_text')->count() == 0) {
                 $text = $crawler->filter('div.lead')->html();
             } else {
                 foreach ($crawler->filter('div.article_text')->children() as $DOM) {
-                    $node = new Crawler($DOM, $arr_article->link);
+                    $node = new Crawler($DOM, $link);
                     if($node->filter('div.inj_link_box')->count() == 0 && $node->filter('img')->count() == 0) {
                         $text .= $DOM->ownerDocument->saveHTML($DOM);
                     }
@@ -277,12 +304,30 @@ class ParseService
             $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $keyWords = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
             $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+            $title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
+            $keyWords = $this->parseArticleTags($link, $source_name);
 
-        }   
+        } else if($source_name == "Reuters") {
+            foreach ($crawler->filter('div.ArticleBody__content___2gQno2.paywall-article')->children() as $DOM) {
+                $node = new Crawler($DOM, $link);
+                if($node->filter('div.AdSlot__container___vv9J1U')->count() == 0) {
+                    $text .= $DOM->ownerDocument->saveHTML($DOM);
+                }
+            }
+
+            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
+            $keyWords = $crawler->filterXpath("//meta[@name='article:tag']")->extract(array('content'));
+            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+            $keyWords = '';
+
+        }      
 
         return [
-            'title' => $arr_article->title,
-            'url' => $arr_article->link,
+            'title' => $title,
+            'source_name' => $source_name,
+            'status' => 1,
+            'url' => $link,
             'text' => $text,
             'meta_tags_article' => [
                 'desc' => $desc, 
@@ -291,8 +336,9 @@ class ParseService
             ],
             'img' => [
                 'url' => $img_url,
-                'alt' => $arr_article->title,
+                'alt' => $title,
             ],
         ];
     }
+
 }
