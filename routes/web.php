@@ -124,8 +124,11 @@ Route::group(['namespace' => 'Backend', 'prefix' => 'admin', 'as' => 'backend.',
     $module_name = 'parse';
     $controller_name = 'ParseController';
     Route::get("$module_name", ['as' => "$module_name.index", 'uses' => "$controller_name@index"]);
+    Route::get("$module_name/parse_articles", ['as' => "$module_name.parse_articles", 'uses' => "$controller_name@parse_articles"]);
     Route::post("$module_name/section_parse", ['as' => "$module_name.section_parse", 'uses' => "$controller_name@section_parse"]);
-    Route::post("$module_name/add_article_session", ['as' => "$module_name.add_article_session", 'uses' => "$controller_name@add_article_session"]);
+    Route::post("$module_name/parse_tags", ['as' => "$module_name.parse_tags", 'uses' => "$controller_name@parse_tags"]);
+    Route::post("$module_name/session_article", ['as' => "$module_name.session_article", 'uses' => "$controller_name@session_article"]);
+    Route::post("$module_name/parse_article_ajax", ['as' => "$module_name.parse_article_ajax", 'uses' => "$controller_name@parse_article_ajax"]);
     
     /*
     *

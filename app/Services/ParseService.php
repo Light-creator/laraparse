@@ -178,7 +178,7 @@ class ParseService
             $crawler = new Crawler(null, $url);
             $crawler->addHtmlContent($html, 'UTF-8');
 
-            dd($crawler->filter('div.feed__row'));
+            dd($html);
             
         }
 
@@ -213,5 +213,86 @@ class ParseService
         }
 
         return $vals;
+    }
+
+    public function parseTags($link, $title_source) {
+        $html = file_get_contents($link);
+
+        $crawler = new Crawler(null, $link);
+        $crawler->addHtmlContent($html, 'UTF-8');
+
+        if($title_source == "RT") {
+            $arrTags = $crawler->filter('li.nav__row-item_popular-trends')->each(function (Crawler $node, $i) {
+                return $node->filter('a')->text();
+            });
+        } else if($title_source == "AIF") {
+
+        }
+        return $arrTags;
+    }
+
+    protected function parseArticleTags($link, $title_source) {
+
+    }
+
+    public function parseArticle($arr_article) {
+        
+        $html = file_get_contents($arr_article->link);
+
+        $crawler = new Crawler(null, $arr_article->link);
+        $crawler->addHtmlContent($html, 'UTF-8');
+
+        $text = '';
+
+        if($arr_article->source_name == "RT") {
+            if($crawler->filter('div.article__text_article-page')->text() == "") {
+                $text = $crawler->filter('div.article__summary.article__summary_article-page.js-mediator-article')->html();
+            } else {
+                foreach ($crawler->filter('div.article__text_article-page')->children() as $DOM) {
+                    $node = new Crawler($DOM, $arr_article->link);
+                    if($node->filter('div.read-more__title')->count() == 0 && $node->filter('img.article__cover-image ')->count() == 0) {
+                        $text .= $DOM->ownerDocument->saveHTML($DOM);
+                    }
+                }
+            }
+
+            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
+            $keyWords = $crawler->filterXpath("//meta[@property='mediator_theme']")->extract(array('content'));
+            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+
+        } else if($arr_article->source_name == "AIF") {
+            if($crawler->filter('div.article_text')->count() == 0) {
+                $text = $crawler->filter('div.lead')->html();
+            } else {
+                foreach ($crawler->filter('div.article_text')->children() as $DOM) {
+                    $node = new Crawler($DOM, $arr_article->link);
+                    if($node->filter('div.inj_link_box')->count() == 0 && $node->filter('img')->count() == 0) {
+                        $text .= $DOM->ownerDocument->saveHTML($DOM);
+                    }
+                }
+            }
+
+            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
+            $keyWords = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
+            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
+
+        }   
+
+        return [
+            'title' => $arr_article->title,
+            'url' => $arr_article->link,
+            'text' => $text,
+            'meta_tags_article' => [
+                'desc' => $desc, 
+                'title' => $title, 
+                'keyWords' => $keyWords, 
+            ],
+            'img' => [
+                'url' => $img_url,
+                'alt' => $arr_article->title,
+            ],
+        ];
     }
 }

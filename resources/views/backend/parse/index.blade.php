@@ -9,9 +9,25 @@
 @endsection
 
 @section('content')
+
 <div class="container d-flex col-lg-12">
     <div class="block-parse col-lg-9">
         <div class="block-parse-sort">
+            <div class="toast" role="alert" aria-live="polite" aria-atomic="true" data-delay="2500" style="z-index: 3000;">
+                <div role="alert" aria-live="assertive" aria-atomic="true" class="toast" data-autohide="false">
+                    <div class="toast-header">
+                    <img src="..." class="rounded mr-2" alt="...">
+                    <strong class="mr-auto">Оповещение</strong>
+                    <small>{{ date('H:i') }}</small>
+                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                    <div class="toast-body">
+                        Статья удалена из списка для парсинга.
+                    </div>
+                </div>
+              </div>
             <div class="section-sort">
                 <div class="row">
                     <div class="col-md-12 select-outline d-flex" style="flex-wrap: wrap;">
@@ -71,19 +87,11 @@
                   </div>
             </div>
             <div class="section-tags">
-                <div class="container">
-                    <ul class="ks-cboxtags">
-                      <li><input type="checkbox" id="checkboxOne" value="Rainbow Dash"><label for="checkboxOne">Rainbow Dash</label></li>
-                      <li><input type="checkbox" id="checkboxTwo" value="Cotton Candy"><label for="checkboxTwo">Cotton Candy</label></li>
-                      <li><input type="checkbox" id="checkboxThree" value="Rarity"><label for="checkboxThree">Rarity</label></li>
-                      <li><input type="checkbox" id="checkboxFour" value="Moondancer"><label for="checkboxFour">Moondancer</label></li>
-                      <li><input type="checkbox" id="checkboxFive" value="Surprise"><label for="checkboxFive">Surprise</label></li>
-                    </ul>    
-                  </div>
+                <div class="container tag_box">
+   
+                </div>
             </div>
         </div>
-        <form action="" method="POST">
-        @csrf
         <div class="block-parse d-flex col-md-12">
             <div class="scrollbar col-md-3 style-3" >
                 <div class="force-overflow">
@@ -105,7 +113,7 @@
                         <div class="page">
                             <div class="page__demo">
                               <div class="main-container page__container">
-                                
+                                <h3>Пусто</h3>
                               </div>
                             </div>
                           </div>
@@ -118,9 +126,8 @@
                 <span><i class="fas fa-search"></i></span>
                 <input type="text">
             </div>
-            <button type="submit" class="parse-submit-button">Запустить парсинг выбранных статей</button>
+            <a href="{{ route('backend.parse.parse_articles') }}" class="parse-submit-button">Запустить парсинг выбранных статей</a>
         </div>
-        </form>
     </div>
     <div class="block-lang col-lg-3">
 
@@ -140,9 +147,50 @@ var foopicker = new FooPicker({
     id: 'datepicker2'
 });
 
-$('.checkbox_article').click(function() {
-    alert(1);
-}); 
+
+
+$(document).on('change', '.checkbox_article', function() {
+    let checked_val = 1;
+    if($(this).is(':checked')) {
+        checked_val = 1;
+    } else {
+        checked_val = 0;
+    }
+    $.ajax('{{ route('backend.parse.session_article') }}', {
+            type: 'POST', 
+            data: { 
+                article: $(this).val(),
+                is_checked: checked_val,
+            },  
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                if(data['message'] == 1) {
+                    $('.toast-body').text('Статья удалена из списка для парсинга.');
+                } else if(data['message'] == 2) {
+                    $('.toast-body').text('Статья добавлена в список для парсинга.');
+                } else {
+                    $('.toast-body').text('Статья уже в списке для парсинга.');
+                }
+                $('.toast').toast('show');
+            }
+    });
+});
+
+
+$('.secondary-choose').click(function() {
+    $.ajax('{{ route('backend.parse.parse_tags') }}', {
+            type: 'POST', 
+            data: { 
+                url_section: $(this).data('param'),
+                source_name: $('.main-choose.choose-active').text(),
+            },  
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                console.log(data);
+                $('.tag_box').html(data);
+            }
+        });
+});
 
 $('.main-choose').click(function() {
     if($(this).hasClass('choose-active')) {
@@ -224,6 +272,7 @@ $('#foopicker-datepicker2').click(function() {
     }
 });
 
+// Alerts
 
 </script>
 @endpush

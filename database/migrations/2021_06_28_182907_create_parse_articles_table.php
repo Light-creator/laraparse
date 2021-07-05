@@ -17,16 +17,16 @@ class CreateParseArticlesTable extends Migration
             $table->id();
             $table->string('title');
             $table->string('url');
-            $table->string('project');
-            $table->string('categorie');
-            $table->string('tags');
-            $table->string('img');
-            $table->string('author');
-            $table->integer('likes');
-            $table->integer('views');
-            $table->longText('desc');
-            $table->longText('meta-tag-img');
-            $table->longText('meta-tags');
+            $table->string('project')->nullable();
+            $table->string('categorie')->nullable();
+            $table->string('tags')->nullable();
+            $table->string('img')->nullable();
+            $table->string('author')->nullable();
+            $table->integer('likes')->nullable();
+            $table->integer('views')->nullable();
+            $table->longText('desc')->nullable();
+            $table->longText('meta-tag-img')->nullable();
+            $table->longText('meta-tags')->nullable();
             $table->timestamps();
         });
     }
