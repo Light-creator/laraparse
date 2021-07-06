@@ -55,7 +55,7 @@ class ParseController extends Controller
         $parser = new ParseService;
         //$request->session()->forget('articles');
         //dd($request->session()->get('articles'));
-        //dd($parser->parseArticles('2021-07-1', '2021-07-5', 'AIF', 'https://spb.aif.ru/tourism'));
+        dd($parser->parseArticles('2021-07-4', '2021-07-5', 'Yandex_zen', 'https://zen.yandex.ru/api/v3/launcher/export?clid=300&country_code=ru&interest_name=наука'));
         //dd($articles);
         //dd($parser->parseTags('https://russian.rt.com/world', "RT"));
         if(!$request->session()->has('source_info')) {

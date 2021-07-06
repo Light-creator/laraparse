@@ -55,7 +55,7 @@
                                           <div class="table__value">{{ $article->title[0] }}</div>
                                         </td>
                                         <td class="table__td">
-                                          <div class="table__value">{{$article->meta_tags_article->keyWords != '' ? implode(',', $article->meta_tags_article->keyWords) : ''}}</div>
+                                          <div class="table__value">{{$article->keyWords != '' ? implode(',', $article->keyWords) : ''}}</div>
                                         </td>
                                         <td class="table__td staus_mess-{{ $key }}">
                                           {{ $article->status == 1 ? 'В ожидании' : 'Успешно' }}
