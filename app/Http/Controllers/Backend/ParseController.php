@@ -55,7 +55,7 @@ class ParseController extends Controller
         $parser = new ParseService;
         //$request->session()->forget('articles');
         //dd($request->session()->get('articles'));
-        dd($parser->parseArticles('2021-07-3', '2021-07-5', 'Reuters', 'https://www.reuters.com/world/'));
+        //dd($parser->parseArticles('2021-07-1', '2021-07-5', 'AIF', 'https://spb.aif.ru/tourism'));
         //dd($articles);
         //dd($parser->parseTags('https://russian.rt.com/world', "RT"));
         if(!$request->session()->has('source_info')) {
@@ -75,9 +75,17 @@ class ParseController extends Controller
     {
         $parser = new ParseService;
         $articles = $parser->parseArticles($request->date_from, $request->date_to, $request->source_name, $request->url_section);
-        $tags = $parser->parseTags($articles);
+        //return response()->json([$articles]);
+        //return response()->json([$articles]);
+        
+        if($request->source_name == "Reuters") {
+            $tags = '';
+        } else {
+            $tags = $parser->parseTags($articles);
+            $tags = view('backend.ajax.tags', compact('tags'))->render();
+        }
         //dd($tags);
-        return response()->json(['articles' => view('backend.ajax.table', compact('articles'))->render(), 'tags' => view('backend.ajax.tags', compact('tags'))->render()]);
+        return response()->json(['articles' => view('backend.ajax.table', compact('articles'))->render(), 'tags' => $tags]);
     }
 
     public function parse_tags(Request $request) 
@@ -129,7 +137,7 @@ class ParseController extends Controller
 
         $module_action = 'List';
         $$module_name = $module_model::with('permissions')->paginate();
-
+    
         $parser = new ParseService;
         
         return view("backend.$module_path.parse_articles", compact('module_title', 'module_name', "$module_name", 'module_icon', 'module_action'));
@@ -138,7 +146,7 @@ class ParseController extends Controller
     public function parse_article_ajax(Request $request) {
 
         $parser = new ParseService;
-
+        
         $article_arr = json_decode($request->session()->get('articles')[$request->article]);
         $img_name = array_slice(explode('/', $article_arr->img->url[0]), -1)[0];
         
@@ -151,12 +159,12 @@ class ParseController extends Controller
         fclose($fp);
 
         $img = Img::create([
-            'alt' => $article_arr->img->alt,
+            'alt' => $article_arr->img->alt[0],
             'original' => $img_name,
         ]);
 
         $article = ParseArticle::create([
-            'title' => $article_arr->title,
+            'title' => $article_arr->title[0],
             'url' => $article_arr->url,
             'project' => 'test_project',
             'categorie' => 'test_categorie',

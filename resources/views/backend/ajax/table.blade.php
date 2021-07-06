@@ -11,10 +11,10 @@
         @foreach($articles as $article)
       <tr class="table__tr">
         <td class="table__td">
-          <div class="table__value table_title">{{ $article['title'] }}</div>
+          <div class="table__value table_title">{{ $article['title'][0] }}</div>
         </td>
         <td class="table__td">
-          <div class="table__value table_keyWords">{{ implode(',', $article['meta_tags_article']['keyWords']) }}</div>
+          <div class="table__value table_keyWords">{{$article['meta_tags_article']['keyWords'] != '' ? implode(',', $article['meta_tags_article']['keyWords']) : '' }}</div>
         </td>
         <td class="table__td">
           <div class="table__value table_text">{{ $article['meta_tags_article']['desc'][0] }}</div>

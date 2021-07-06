@@ -121,7 +121,7 @@
                 <span><i class="fas fa-search"></i></span>
                 <input type="text">
             </div>
-            <a href="{{ route('backend.parse.parse_articles') }}" class="parse-submit-button">Запустить парсинг выбранных статей</a>
+            <a href="{{ route('backend.parse.parse_articles') }}" class="parse-submit-button text-decoration-none">Запустить парсинг выбранных статей</a>
         </div>
     </div>
     <div class="block-lang col-lg-3">

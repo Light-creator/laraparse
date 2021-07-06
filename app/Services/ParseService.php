@@ -16,7 +16,7 @@ class ParseService
             'AIF' => [
                 'link' => 'https://spb.aif.ru',
                 'parser_for_menu' => 'li.menuItem > a',
-                'parser_for_tags' => '',
+                'parser_for_tags' => 'span.item-prop-span',
             ],
             'Reuters' => [
                 'link' => 'https://www.reuters.com',
@@ -117,13 +117,7 @@ class ParseService
                         return collect($newvals);
                     }
                     if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
-                        $newvals[] = [
-                            'title' => $node->filter('div.box_info > a > h3')->text(),
-                            'text' => $node->filter('div.text_box > span')->text(),
-                            'keyWord' => mb_strtolower($node->filter('a.rubric_link')->text()),
-                            'url' => $node->filter('div.box_info > a')->link()->getUri(),
-                            'source_name' => $name_source,
-                        ];
+                        $newvals[] = $this->parseArticle($node->filter('div.box_info > a')->link()->getUri(), $name_source);
                     }
                     
                 }
@@ -178,17 +172,15 @@ class ParseService
                 $date = explode('T', $data->result->articles[0]->published_time)[0];
                 $url = 'https://www.reuters.com'. $data->result->articles[0]->canonical_url;
                 
-                if(Carbon::parse($date)->getTimestamp() < Carbon::parse($date_from)->getTimestamp()) {
+                if(Carbon::parse($date)->getTimestamp() < Carbon::parse($date_from)->getTimestamp() || $z == 15) {
                     
                     return collect($newvals);
                 }
                 if(Carbon::parse($date)->getTimestamp() <= Carbon::parse($date_to)->getTimestamp()) {
                     
                     $newvals[] = $this->parseArticle($url, $name_source);
-                    dd($newvals);
+                    $z++;
                 }
-                
-                $z++;
             }
         }
 
@@ -285,7 +277,7 @@ class ParseService
             $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $keyWords = $crawler->filterXpath("//meta[@property='mediator_theme']")->extract(array('content'));
             $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
-            $title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
+            //$title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
             $keyWords = $this->parseArticleTags($link, $source_name);
 
         } else if($source_name == "AIF") {
@@ -304,9 +296,9 @@ class ParseService
             $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $keyWords = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
             $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
-            $title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
+            //$title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
             $keyWords = $this->parseArticleTags($link, $source_name);
-
+            
         } else if($source_name == "Reuters") {
             foreach ($crawler->filter('div.ArticleBody__content___2gQno2.paywall-article')->children() as $DOM) {
                 $node = new Crawler($DOM, $link);

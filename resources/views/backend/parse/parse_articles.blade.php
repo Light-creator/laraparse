@@ -15,57 +15,6 @@
             <div class="section-sort">
                 <div class="row">
                     <div class="col-md-12 select-outline d-flex" style="flex-wrap: wrap;">
-                        <div class="form-group d-flex align-items-center mx-1">
-                            <input type="text" class="form-control" placeholder="Поиск по тегам">
-                        </div>
-                        <div class="custom-select mx-1" style="width:200px;">
-                            <select>
-                              <option value="0">Select car:</option>
-                              <option value="1">Audi</option>
-                              <option value="2">BMW</option>
-                            </select>
-                        </div>
-                        <div class="custom-select mx-1" style="width:200px;">
-                            <select>
-                              <option value="0">Select car:</option>
-                              <option value="1">Audi</option>
-                              <option value="2">BMW</option>
-                            </select>
-                        </div>
-                        <div class="d-flex mx-1">
-                            <p class="mt-2 mx-1">С</p>
-                            <div class="block_icon">
-                                <i class="far fa-calendar-alt"></i>
-                            </div>
-                            <input type="text" class="date_from" id="datepicker" name="date_from"/>
-                        </div>
-                        <div class="d-flex mx-1">
-                            <p class="mt-2 mx-1">По</p>
-                            <div class="block_icon">
-                                <i class="far fa-calendar-alt"></i>
-                            </div>
-                            <input type="text" id="datepicker2" name="date_from"/>
-                        </div>
-
-                        <div class="d-flex align-items-center mx-1">
-                            <p class="">Искать в:</p>
-                            <label class="__container mx-1">Загаловке
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                            </label>
-                            <label class="__container mx-1">Тегах
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                            </label>
-                            <label class="__container mx-1">КС
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                            </label>
-                            <label class="__container mx-1">Тексте
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                            </label>
-                        </div>
                   
                     </div>
                   </div>
@@ -103,10 +52,10 @@
 
                                       <tr class="table__tr">
                                         <td class="table__td">
-                                          <div class="table__value">{{ $article->title }}</div>
+                                          <div class="table__value">{{ $article->title[0] }}</div>
                                         </td>
                                         <td class="table__td">
-                                          <div class="table__value">{{ implode(',', $article->meta_tags_article->keyWords) }}</div>
+                                          <div class="table__value">{{$article->meta_tags_article->keyWords != '' ? implode(',', $article->meta_tags_article->keyWords) : ''}}</div>
                                         </td>
                                         <td class="table__td staus_mess-{{ $key }}">
                                           {{ $article->status == 1 ? 'В ожидании' : 'Успешно' }}

@@ -26550,8 +26550,7 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
 }
 
 .submit-parse-block {
-  border: 1px solid #000;
-  height: 60px;
+  height: 80px;
 }
 
 .block-lang {
@@ -26685,6 +26684,8 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
   font-size: 11px;
   font-weight: normal;
   border-radius: 5px;
+  text-decoration: none;
+  padding: 5px;;
 
   display: flex;
   justify-content: center;
@@ -26693,6 +26694,7 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
 
 .parse-submit-button:hover {
   background-color: #0a5fc0;
+  color: #fff;
 }
 
 .block-search {
