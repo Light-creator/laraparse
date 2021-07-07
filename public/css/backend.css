@@ -26516,6 +26516,22 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
   height: 300px;
 }
 
+@media(min-height: 900px) {
+    .scrollbar
+  {
+    overflow-y: scroll;
+    height: 400px;
+  }
+}
+
+@media(min-height: 1100px) {
+  .scrollbar
+{
+  overflow-y: scroll;
+  height: 500px;
+}
+}
+
 
 .force-overflow
 {
@@ -26565,8 +26581,8 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
 }
 
 .block-lang {
-  border: 1px solid #000;
   min-height: 100%;
+  padding: 10px;
 }
 
 
@@ -26774,6 +26790,9 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
 
 }
 
+.block-parse {
+  min-height: 70%;
+}
 
 
 

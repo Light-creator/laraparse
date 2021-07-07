@@ -196,10 +196,15 @@ class ParseService
             
             $url = 'https://zen.yandex.ru/api/v3/launcher/export?clid=300&country_code=ru&interest_name='.urlencode(explode('?', explode('/', $url)[4])[0]);
             $response = json_decode(file_get_contents($url));
-
+            
             foreach ($response->items as $article) {
-                if(explode('/', $article->link)[2] == 'zen.yandex.ru') {
-                    $newvals[] = $this->parseArticle($article->link, $name_source);
+                if($article->publication_date != '' && $article->publication_date < Carbon::parse($date_from)->getTimestamp()) {
+                    return $newvals;
+                }
+                if($article->publication_date != '' || $article->publication_date <= Carbon::parse($date_to)->getTimestamp()) {  
+                    if(explode('/', $article->link)[2] == 'zen.yandex.ru') {
+                        $newvals[] = $this->parseArticle($article->link, $name_source);
+                    }
                 }
             }
         }

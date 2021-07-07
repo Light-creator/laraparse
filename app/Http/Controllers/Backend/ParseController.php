@@ -54,7 +54,8 @@ class ParseController extends Controller
         Log::info(label_case($module_title.' '.$module_action).' | User:'.auth()->user()->name.'(ID:'.auth()->user()->id.')');
 
         $parser = new ParseService;
-
+        //dd($request->session());
+        //dd($parser->parseArticles('2021-07-01', '2021-07-07', 'Yandex_zen', 'https://zen.yandex.ru/t/кино?country_code=ru&lang=en&clid=300&referrer_place=left_column&from_page=other_page'));
         if(!$request->session()->has('source_info')) {
             $request->session()->put('source_info', $parser->parseSourceInfo());
             $request->session()->save();

@@ -63,7 +63,7 @@
                 <!-- / Errors block -->
                 <div class="container-fluid">
 
-                    <div class="animated fadeIn d-flex justify-content-center align-items-center" style="height: 100%">
+                    <div class="animated fadeIn d-flex justify-content-center align-items-center flex-column" style="height: 100%">
 
                         <!-- Main content block -->
                         @yield('content')
