@@ -16,7 +16,7 @@ class CreateParseArticlesTable extends Migration
         Schema::create('parse_articles', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('url');
+            $table->longText('url');
             $table->string('project')->nullable();
             $table->string('categorie')->nullable();
             $table->string('tags')->nullable();

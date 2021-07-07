@@ -10,7 +10,7 @@
 
 @section('content')
 <div class="container d-flex col-lg-12">
-    <div class="block-parse col-lg-9">
+    <div class="block-parse col-lg-8">
         <div class="block-parse-sort">
             <div class="section-sort">
                 <div class="row">
@@ -58,7 +58,7 @@
                                           <div class="table__value">{{$article->keyWords != '' ? implode(',', $article->keyWords) : ''}}</div>
                                         </td>
                                         <td class="table__td staus_mess-{{ $key }}">
-                                          {{ $article->status == 1 ? 'В ожидании' : 'Успешно' }}
+                                          {!! $article->status == 1 ? 'В ожидании' : '<p class="p_success">Успешно</p>' !!}
                                         </td>
                                         <td class="table__td">
                                         </td>
@@ -77,14 +77,41 @@
             </div>
         </div>
     </div>
-    <div class="block-lang col-lg-3">
+    <div class="block-lang col-lg-4 bg-white">
+      <h5>Статистика парсинга</h5>
+      <div class="block_date d-flex d-flex justify-content-center">
+        <div class="d-flex mx-1">
+          <p class="mt-2 mx-1">С</p>
+          <div class="block_icon b_i_2">
+              <i class="far fa-calendar-alt"></i>
+          </div>
+          <input type="text" class="date_from b_i_2" id="datepicker" name="date_from"/>
+      </div>
+      <div class="d-flex mx-1">
+          <p class="mt-2 mx-1">По</p>
+          <div class="block_icon b_i_2">
+              <i class="far fa-calendar-alt"></i>
+          </div>
+          <input type="text" id="datepicker2" class="b_i_2" name="date_from"/>
+      </div>
+      </div>
+      <div class="block_stat_ajax">
 
+      </div>
     </div>
 </div>
 @endsection
 
 @push('after-scripts')
 <script type="text/javascript">
+
+    var foopicker = new FooPicker({
+        id: 'datepicker'
+    });
+
+    var foopicker = new FooPicker({
+        id: 'datepicker2'
+    });
 
     $(document).ready(function() {
         @if(Session::get('articles') !== null)
@@ -99,7 +126,7 @@
                 },  
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 success: function (data) {
-                    $('.staus_mess-'+'{{ $key }}').text('Успешно');
+                    $('.staus_mess-'+'{{ $key }}').html('<p class="p_success">Успешно</p>');
                     console.log(data);
                 }
             });
@@ -107,6 +134,41 @@
         @endforeach
         @endif
     });
+
+
+    $('#foopicker-datepicker').click(function() {
+      if($('#datepicker2').val() != '') {
+          $.ajax('{{ route('backend.parse.stats') }}', {
+              type: 'POST', 
+              data: { 
+                  date_from: $('#datepicker').val(),
+                  date_to: $('#datepicker2').val(),
+              },  
+              headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+              success: function (data) {
+                  console.log(data);
+                  $('.block_stat_ajax').html(data);
+              }
+          });
+      }
+  });
+
+  $('#foopicker-datepicker2').click(function() {
+      if($('#datepicker').val() != '') {
+          $.ajax('{{ route('backend.parse.stats') }}', {
+              type: 'POST', 
+              data: { 
+                  date_from: $('#datepicker').val(),
+                  date_to: $('#datepicker2').val(),
+              },  
+              headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+              success: function (data) {
+                  console.log(data);
+                  $('.block_stat_ajax').html(data);
+              }
+          });
+      }
+  });
 
 </script>
 @endpush

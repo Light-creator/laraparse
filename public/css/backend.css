@@ -9879,9 +9879,20 @@ html:not([dir=rtl]) .pagination-sm .page-item:last-child .page-link {
   font-size: 0.65625rem;
   border-radius: 0.25rem;
   background-color: #ebedef;
+  margin-top: 5px;
+  align-items: center;
+  padding: 10px;
+}
+
+.progress p {
+  margin-top: 12px;
+  margin-left: 10px;
 }
 
 .progress-bar {
+  border-radius: 5px;
+  margin-left: 10px;
+  height: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -26723,6 +26734,44 @@ ul.ks-cboxtags li input[type="checkbox"]:focus + label {
   color: var(--secondary);
   border: none;
   outline: none;
+}
+
+
+
+.p_error {
+  color: var(--danger);
+}
+
+.p_success {
+  color: var(--success);
+}
+
+.b_i_2 {
+  background-color: var(--light);
+}
+
+.stat_section_count {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+
+  width: 90%;
+
+  background-color: var(--light);
+  padding: 7px;
+  border-radius: 7px;
+}
+
+.stat_count {
+  color: var(--primary);
+}
+
+.progress_section {
+  background-color: var(--light);
+  width: 90%;
+  border-radius: 15px;
+
 }
 
 

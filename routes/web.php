@@ -129,6 +129,7 @@ Route::group(['namespace' => 'Backend', 'prefix' => 'admin', 'as' => 'backend.',
     Route::post("$module_name/parse_tags", ['as' => "$module_name.parse_tags", 'uses' => "$controller_name@parse_tags"]);
     Route::post("$module_name/session_article", ['as' => "$module_name.session_article", 'uses' => "$controller_name@session_article"]);
     Route::post("$module_name/parse_article_ajax", ['as' => "$module_name.parse_article_ajax", 'uses' => "$controller_name@parse_article_ajax"]);
+    Route::post("$module_name/stats", ['as' => "$module_name.stats", 'uses' => "$controller_name@stats"]);
     
     /*
     *

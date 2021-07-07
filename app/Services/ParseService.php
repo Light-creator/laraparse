@@ -21,7 +21,6 @@ class ParseService
             'Reuters' => [
                 'link' => 'https://www.reuters.com',
                 'parser_for_menu' => 'li.LinkGroup__item___2lsBAV > a.Text__text___3eVx1j.Text__dark-grey___AS2I_p.Text__medium___1ocDap.Text__default___1Xh7Yh.Link__underline_on_hover___3-iv5a.LinkGroup__link___Q30Q4E',
-                'parser_for_tags' => '',
             ],
             'HuffingtonPost' => [
                 'link' => 'https://www.huffpost.com',
@@ -31,11 +30,11 @@ class ParseService
             'Yandex_zen' => [
                 'link' => 'https://www.zen.yandex.ru',
                 'parser_for_menu' => 'a.nav-menu-item',
-                'parser_for_tags' => '',
             ],
         ];
     }
     
+    // Parsing data for menu
     public function parseSourceInfo() {
         $new_arr = [];
 
@@ -46,6 +45,44 @@ class ParseService
         return collect($new_arr);
     }
 
+    protected function parseData($parser, $link, $title_source) {
+        $html = file_get_contents($link);
+
+        $crawler = new Crawler(null, $link);
+        $crawler->addHtmlContent($html, 'UTF-8');
+
+        $vals = [];
+        
+        if($title_source == "AIF") {
+            foreach($crawler->filter('li.top_level_item_js')->first() as $DOM) {
+                $node = new Crawler($DOM);
+                $count = $node->filter('a')->count()-1;
+            }
+        } else {
+            $count = 0;
+        }
+        $i = 0;
+        foreach($crawler->filter($parser) as $DOM) {
+            $node = new Crawler($DOM, $link);
+            if($node->text() != '.link:hover .Covid19-icon { background-color: transparent; } Евро-2020' && $i >= $count) {
+                if($title_source == 'Reuters' && $i < 8) {
+                    $vals[] = [
+                        $node->text() => $node->link()->getUri(),
+                    ];
+                } else if($title_source != 'Reuters') {
+                    $vals[] = [
+                        $node->text() => $node->link()->getUri(),
+                    ];
+                }
+            }
+            $i++;
+        }
+
+        return $vals;
+    }
+
+
+    // Parsing Articles
     public function parseArticles($date_from, $date_to, $name_source, $url) {
         $newvals = [];
 
@@ -54,7 +91,7 @@ class ParseService
             $section = explode('/', $url)[count(explode('/', $url))-1];
 
             $link_main = 'https://russian.rt.com/listing/type.Article.category.'.$section.'/prepare/sections/1/';
-            //return $link_main;
+            
             $i = 2;
             $data = @file_get_contents($link_main.''.$i);
             while($data) {
@@ -156,75 +193,18 @@ class ParseService
 
             }
         } else if($name_source == "Yandex_zen") {
-            $url = 'https://zen.yandex.ru/api/v3/launcher/categorie?clid=300&country_code=ru&interest_name='.urlencode(explode('=', $url)[count(explode('=', $url))-1]);
-            $html = file_get_contents($url);
-            dd(json_decode($html));
-            $crawler = new Crawler(null, $url);
-            $crawler->addHtmlContent($html, 'UTF-8');
-        }
+            
+            $url = 'https://zen.yandex.ru/api/v3/launcher/export?clid=300&country_code=ru&interest_name='.urlencode(explode('?', explode('/', $url)[4])[0]);
+            $response = json_decode(file_get_contents($url));
 
-        return collect($newvals);
-    }
-
-    private function parseData($parser, $link, $title_source) {
-        $html = file_get_contents($link);
-
-        $crawler = new Crawler(null, $link);
-        $crawler->addHtmlContent($html, 'UTF-8');
-
-        $vals = [];
-        
-        if($title_source == "AIF") {
-            foreach($crawler->filter('li.top_level_item_js')->first() as $DOM) {
-                $node = new Crawler($DOM);
-                $count = $node->filter('a')->count()-1;
-            }
-        } else {
-            $count = 0;
-        }
-        $i = 0;
-        foreach($crawler->filter($parser) as $DOM) {
-            $node = new Crawler($DOM, $link);
-            if($node->text() != '.link:hover .Covid19-icon { background-color: transparent; } Евро-2020' && $i >= $count) {
-                if($title_source == 'Reuters' && $i < 8) {
-                    $vals[] = [
-                        $node->text() => $node->link()->getUri(),
-                    ];
-                } else if($title_source != 'Reuters') {
-                    $vals[] = [
-                        $node->text() => $node->link()->getUri(),
-                    ];
+            foreach ($response->items as $article) {
+                if(explode('/', $article->link)[2] == 'zen.yandex.ru') {
+                    $newvals[] = $this->parseArticle($article->link, $name_source);
                 }
             }
-            $i++;
         }
 
-        return $vals;
-    }
-
-    public function parseTags($articles) {
-        $tags = [];
-
-        foreach($articles as $article) {
-            $arr_tags = $this->parseArticleTags($article['url'], $article['source_name']);
-
-            $tags = array_merge($tags, $arr_tags);
-        }
-
-        return array_values(array_unique($tags));
-    }
-
-    protected function parseArticleTags($link, $title_source) {
-        $html = file_get_contents($link);
-
-        $crawler = new Crawler(null, $link);
-        $crawler->addHtmlContent($html, 'UTF-8');
-
-        $arr_tags = $crawler->filter($this->arr[$title_source]['parser_for_tags'])->each(function (Crawler $node, $i) {
-            return $node->text();
-        });
-        
-        return $arr_tags;
+        return $newvals;
     }
 
     public function parseArticle($link, $source_name) {
@@ -252,11 +232,7 @@ class ParseService
                 }
             }
 
-            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
-            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $tags = $crawler->filterXpath("//meta[@property='mediator_theme']")->extract(array('content'));
-            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
-            //$title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
             $keyWords = $this->parseArticleTags($link, $source_name);
             $date = '';
 
@@ -272,11 +248,7 @@ class ParseService
                 }
             }
 
-            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
-            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $tags = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
-            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
-            //$title = $crawler->filter("h1.article__heading.article__heading_article-page")->text();
             $keyWords = $this->parseArticleTags($link, $source_name);
             $date = '';
             
@@ -288,10 +260,7 @@ class ParseService
                 }
             }
 
-            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
-            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $tags = $crawler->filterXpath("//meta[@name='article:tag']")->extract(array('content'));
-            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
             $keyWords = '';
             $date = '';
 
@@ -304,17 +273,34 @@ class ParseService
                     }
                 }
             } else {
-                $text = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+                $text = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'))[0];
             }
 
-            $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
-            $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
             $tags = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
-            $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
             $keyWords = $this->parseArticleTags($link, $source_name);
             $date = $crawler->filter('span.timestamp__date--published > span')->count() != 0 ? explode(' ', $crawler->filter('span.timestamp__date--published > span')->text())[0] : '';
 
-        }     
+        } else if($source_name == "Yandex_zen") {
+            if($crawler->filter('div.article-render')->count() != 0) {
+                foreach ($crawler->filter('div.article-render')->children() as $DOM) {
+                    $node = new Crawler($DOM, $link);
+                    if($node->filter('div.article-image-with-viewer__image')->count() == 0 && $node->filter('a.article-link.article-link_theme_undefined')->count() == 0) {
+                        $text .= $DOM->ownerDocument->saveHTML($DOM);
+                    }
+                }
+            } else {
+                $text = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'))[0];
+            }
+
+            $tags = $crawler->filterXpath("//meta[@name='keywords']")->extract(array('content'));
+            $keyWords = '';
+            $date = '';
+
+        }      
+
+        $desc = $crawler->filterXpath("//meta[@name='description']")->extract(array('content'));
+        $title = $crawler->filterXpath("//meta[@property='og:title']")->extract(array('content'));
+        $img_url = $crawler->filterXpath("//meta[@property='og:image']")->extract(array('content'));
 
         return [
             'date' => $date,
@@ -334,6 +320,33 @@ class ParseService
                 'alt' => $title,
             ],
         ];
+    }
+
+
+    // Parsing Tags
+    public function parseTags($articles) {
+        $tags = [];
+
+        foreach($articles as $article) {
+            $arr_tags = $this->parseArticleTags($article['url'], $article['source_name']);
+
+            $tags = array_merge($tags, $arr_tags);
+        }
+
+        return array_values(array_unique($tags));
+    }
+
+    protected function parseArticleTags($link, $title_source) {
+        $html = file_get_contents($link);
+
+        $crawler = new Crawler(null, $link);
+        $crawler->addHtmlContent($html, 'UTF-8');
+
+        $arr_tags = $crawler->filter($this->arr[$title_source]['parser_for_tags'])->each(function (Crawler $node, $i) {
+            return $node->text();
+        });
+        
+        return $arr_tags;
     }
 
 }
